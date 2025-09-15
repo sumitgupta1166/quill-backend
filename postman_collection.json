@@ -1,0 +1,189 @@
+{
+  "info": {
+    "name": "Multi-Tenant Notes API",
+    "_postman_id": "8b84d9c7-5e6b-43f7-9f8a-d9bb4e9e1234",
+    "description": "Postman tests for Multi-Tenant SaaS Notes Application",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/health"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Status is ok', function () {",
+              "  pm.expect(pm.response.json().status).to.eql('ok');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tenant Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"NewTenant\",\n  \"slug\": \"newtenant\",\n  \"email\": \"admin@newtenant.test\",\n  \"password\": \"password\"\n}"
+        },
+        "url": "{{baseUrl}}/api/tenants/register"
+      },
+      "response": []
+    },
+    {
+      "name": "Auth - Login (Acme Admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@acme.test\",\n  \"password\": \"password\"\n}"
+        },
+        "url": "{{baseUrl}}/api/auth/login"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "const data = pm.response.json();",
+              "pm.environment.set('acmeAdminToken', data.token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth - Login (Acme Member)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"user@acme.test\",\n  \"password\": \"password\"\n}"
+        },
+        "url": "{{baseUrl}}/api/auth/login"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.environment.set('acmeUserToken', pm.response.json().token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth - Login (Globex Admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@globex.test\",\n  \"password\": \"password\"\n}"
+        },
+        "url": "{{baseUrl}}/api/auth/login"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.environment.set('globexAdminToken', pm.response.json().token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notes - Create (Acme Admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{acmeAdminToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"title\": \"Test Note\", \"content\": \"Hello World\" }"
+        },
+        "url": "{{baseUrl}}/api/notes"
+      },
+      "response": []
+    },
+    {
+      "name": "Notes - List (Acme Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{acmeAdminToken}}" }
+        ],
+        "url": "{{baseUrl}}/api/notes"
+      },
+      "response": []
+    },
+    {
+      "name": "Tenant Upgrade (Acme → Pro)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{acmeAdminToken}}" }
+        ],
+        "url": "{{baseUrl}}/api/tenants/acme/upgrade"
+      },
+      "response": []
+    },
+    {
+      "name": "Role Restriction Test (Member Upgrade Forbidden)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{acmeUserToken}}" }
+        ],
+        "url": "{{baseUrl}}/api/tenants/acme/upgrade"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Should be forbidden (403)', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" }
+  ]
+}
