@@ -12,7 +12,8 @@ dotenv.config();
 const app = express();
 const allowedOrigins = [
   "http://localhost:5173", // Local frontend
-  "https://your-frontend.vercel.app", // Replace with deployed frontend
+  "https://your-frontend.vercel.app",
+  "https://quill-frontend-two.vercel.app" // Replace with deployed frontend
 ];
 
 app.use(
