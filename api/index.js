@@ -28,7 +28,7 @@ app.use(
 app.use(express.json());
 
 // Health
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/', (req, res) => res.json({ status: 'ok' }));
 
 // API routes
 app.use('/api/auth', authRoutes);
